@@ -1,0 +1,24 @@
+[project]
+name = "rgbx-env"
+version = "0.1.0"
+description = "Pinned environment for zheng95z/rgbx, mirroring upstream environment.yml"
+requires-python = "==3.11.*"
+dependencies = [
+    "torch==2.3.1",
+    "torchvision==0.18.1",
+    "torchaudio==2.3.1",
+    "diffusers==0.20.0",
+    "gradio==3.48.0",
+    "imageio==2.34.1",
+    "numpy==1.26.4",
+    "opencv-python==4.9.0.80",
+    "transformers==4.40.2",
+    "huggingface-hub==0.25.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = false
