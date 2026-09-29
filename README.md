@@ -1,11 +1,22 @@
-# Nix で rgbx デモを起動する
+# 必要な環境
 
-Nix および対応する NVIDIA GPU を備えた x86_64 Linux PC では、次のコマンドで RGB→X デモを起動できます。
+- x86_64 の WSL 2 と、WSL 内にインストールした Nix（flakes を有効にする）
+- NVIDIA GPU と、Windows 側にインストールした WSL 対応の NVIDIA ドライバ
+
+WSL 内に Linux 用の NVIDIA ドライバや CUDA Toolkit を追加する必要はありません。
+
+# 実行方法
+
+WSL の端末で実行します。
 
 ```sh
-nix run github:YOUR_USER/YOUR_REPOSITORY
+nix run github:khimoo/rgbx-study
 ```
 
-端末に表示される Gradio のローカル URL をブラウザで開いてください。初回起動時にはモデルの重みがダウンロードされます。モデルファイルや RGB→X デモで保存した画像は、`${XDG_DATA_HOME:-$HOME/.local/share}/rgbx/rgb2x/` に保存されます。
+端末に表示される Gradio のローカル URL を Windows のブラウザで開いてください。
+初回起動時にはモデルの重みがダウンロードされます。
 
-なお、本環境は NixOS の NVIDIA ドライバのパスを使用しているため、他の Linux ディストリビューションではドライバの設定変更が必要になる場合があります。
+モデルファイルや RGB→X デモで保存した画像は、`${XDG_DATA_HOME:-$HOME/.local/share}/rgbx/rgb2x/` に保存されます。
+
+起動時に `/usr/lib/wsl/lib` が存在すれば、CUDA ドライバの検索パスに追加します。
+NixOS のドライバ配置にも対応しています。

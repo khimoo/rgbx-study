@@ -117,11 +117,14 @@
           # nvidia-*-cu12 の wheel は共有ライブラリを site-packages/nvidia/*/lib に配置し、
           # 実行時に dlopen で読み込む。そのため、これらのディレクトリとホストのドライバを
           # ライブラリ検索パスに追加する。
+          # WSL 2 では /usr/lib/wsl/lib に Windows 側の CUDA ドライバがある。
           libdirs=""
-          for d in ${venv}/lib/python*/site-packages/nvidia/*/lib; do
+          for d in \
+            ${venv}/lib/python*/site-packages/nvidia/*/lib \
+            /usr/lib/wsl/lib \
+            ${pkgs.addDriverRunpath.driverLink}/lib; do
             [ -d "$d" ] && libdirs="$libdirs''${libdirs:+:}$d"
           done
-          libdirs="$libdirs''${libdirs:+:}${pkgs.addDriverRunpath.driverLink}/lib"
           export LD_LIBRARY_PATH="$libdirs''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
           data_home="''${XDG_DATA_HOME:-$HOME/.local/share}"
           export RGBX_DATA_DIR="$data_home/rgbx/rgb2x"
