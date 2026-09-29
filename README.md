@@ -17,3 +17,6 @@ nix run github:khimoo/rgbx-study
 初回起動時にはモデルの重みがダウンロードされます。
 
 モデルファイルや RGB→X デモで保存した画像は、`${XDG_DATA_HOME:-$HOME/.local/share}/rgbx/rgb2x/` に保存されます。
+
+起動時に `/usr/lib/wsl/lib` が存在すれば、CUDA ドライバの検索パスに追加します。
+NixOS のドライバ配置にも対応しています。
