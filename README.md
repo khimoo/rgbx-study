@@ -28,7 +28,7 @@ sh <(curl -L https://nixos.org/nix/install) --daemon
 error: experimental Nix feature 'nix-command' is disabled; add '--extra-experimental-features nix-command' to enable it
 ```
 
-Ubuntuなどの環境ではでは、`~/.config/nix/nix.conf` に`experimental-features = nix-command flakes`を追記します（ファイルが存在しない場合は新規に作成してください）。
+Ubuntu などの環境では、`~/.config/nix/nix.conf` に `experimental-features = nix-command flakes` を追記します（ファイルが存在しない場合は新規に作成してください）。
 
 NixOS-WSL の場合は、`/etc/nixos/configuration.nix` に以下の設定を追加し、`sudo nixos-rebuild switch` を実行して反映させます。
 
@@ -81,7 +81,7 @@ nix develop -c just batch 入力 出力 --aov albedo normal roughness
 
 ## 一部をサンプリング（抽出）して処理する
 
-ファイル群が<数字.拡張子>の形の場合，とびとびに処理したりできます．
+ファイル名の末尾が連番になっている場合（`0001.png` でも `frame_0001.png` でも構いません）、とびとびに処理できます。
 抽出方法には、ファイル名の連番に基づいてグループ化し、各グループから 1 枚を抽出する `thin` と、全体のファイル枚数を基準に一定の間隔で選出する `every` の 2 つのモードがあります．
 
 ### 1. 連番の数値でグループ化して抽出する（thin）
