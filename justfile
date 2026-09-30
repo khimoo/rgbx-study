@@ -22,13 +22,13 @@ thin input work digits:
 every input work step index="0":
     nix run .#select -- --input {{ input }} --output {{ work }} --every {{ step }} --index {{ index }}
 
-# 間引いてから処理する
+# thinとbatchまとめて実行
 #   just thin-batch 入力 work 出力 2 [--steps 20 ...]
 thin-batch input work output digits *args:
     @just thin {{ input }} {{ work }} {{ digits }}
     @just batch {{ work }} {{ output }} {{ args }}
 
-# step 枚ごとに 1 枚だけ処理する
+# stepとbatchまとめて実行
 #   just every-batch 入力 work 出力 25 [--steps 20 ...]
 every-batch input work output step *args:
     @just every {{ input }} {{ work }} {{ step }}

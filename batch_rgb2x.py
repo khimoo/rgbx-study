@@ -34,7 +34,7 @@ def load_photo(path):
 
 
 def fit_to_model(photo, max_side):
-    """デモと同じ前処理。長辺を max_side に揃え、8 の倍数へ切り詰める。"""
+    """デモでcallback内で書かれてる処理と同じ処理です．"""
     old_height, old_width = photo.shape[1], photo.shape[2]
     ratio = old_height / old_width
     if old_height > old_width:
@@ -67,7 +67,12 @@ def main():
     parser.add_argument("--input", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--steps", type=int, default=50)
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="乱数のシードを固定できる．大量の画像の処理を途中からやりなおしたいときなど",
+    )
     parser.add_argument("--max-side", type=int, default=1000)
     parser.add_argument(
         "--aov",
@@ -85,8 +90,6 @@ def main():
 
     pipe = build_pipeline()
 
-    # AOV ごとの seed のずらし幅は AOV_PROMPTS 上の位置で決める。--aov で一部だけを
-    # 指定しても、その AOV の結果が全種類を生成したときと一致する。
     aov_offsets = {name: offset for offset, name in enumerate(AOV_PROMPTS)}
 
     for index, path in enumerate(images, 1):
@@ -100,12 +103,11 @@ def main():
             if targets[aov].exists():
                 continue
             prompt = AOV_PROMPTS[aov]
-            # デモは 1 つの generator を 5 種類で使い回すので、途中から再開すると
-            # 乱数列がずれる。AOV ごとに seed をずらして作り直し、どこから再開しても
-            # 同じ結果になるようにする。
-            generator = torch.Generator(device="cuda").manual_seed(
-                args.seed + aov_offsets[aov]
-            )
+            generator = None
+            if args.seed is not None:
+                generator = torch.Generator(device="cuda").manual_seed(
+                    args.seed + aov_offsets[aov]
+                )
             generated = pipe(
                 prompt=prompt,
                 photo=photo,

@@ -58,8 +58,6 @@ def pick_truncated(entries, digits):
 
 def pick_every(entries, step, index):
     """連番順に step 枚ごとに 1 枚を選ぶ。index は数え始めの位置（0 始まり）。
-
-    連番の値ではなく枚数で数えるので、番号が等間隔でなくても枚数は step 分の 1 になる。
     """
     if index >= step:
         raise SystemExit(f"--index {index} は --every {step} 未満にする。")
