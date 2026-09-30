@@ -2,3 +2,4 @@ rgbx/
 result
 result-*
 .venv/
+__pycache__/

@@ -107,33 +107,61 @@
             'current_directory = os.path.dirname(os.path.abspath(__file__))' \
             'current_directory = os.environ["RGBX_DATA_DIR"]'
       '';
+
+      # バッチ処理スクリプトは load_image と pipeline_rgb2x を import するため、
+      # アップストリームのソースと同じディレクトリに置く。
+      batchSource = pkgs.runCommand "rgbx-batch-source" { } ''
+        cp -r ${rgbx}/rgb2x "$out"
+        chmod -R u+w "$out"
+        cp ${./batch_rgb2x.py} "$out/batch_rgb2x.py"
+      '';
+
+      # nvidia-*-cu12 の wheel は共有ライブラリを site-packages/nvidia/*/lib に配置し、
+      # 実行時に dlopen で読み込む。そのため、これらのディレクトリとホストのドライバを
+      # ライブラリ検索パスに追加する。
+      # WSL 2 では /usr/lib/wsl/lib に Windows 側の CUDA ドライバがある。
+      runtimeEnv = ''
+        libdirs=""
+        for d in \
+          ${venv}/lib/python*/site-packages/nvidia/*/lib \
+          /usr/lib/wsl/lib \
+          ${pkgs.addDriverRunpath.driverLink}/lib; do
+          [ -d "$d" ] && libdirs="$libdirs''${libdirs:+:}$d"
+        done
+        export LD_LIBRARY_PATH="$libdirs''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        data_home="''${XDG_DATA_HOME:-$HOME/.local/share}"
+        export RGBX_DATA_DIR="$data_home/rgbx/rgb2x"
+        ${pkgs.coreutils}/bin/mkdir -p "$RGBX_DATA_DIR"
+      '';
     in
     {
       # 依存の解決結果を単体で検証するための出力。
       packages.${system}.venv = venv;
 
-      apps.${system}.default = {
-        type = "app";
-        meta.description = "Launch the RGB→X Gradio demo";
-        program = "${pkgs.writeShellScript "rgbx-rgb2x" ''
-          set -eu
-          # nvidia-*-cu12 の wheel は共有ライブラリを site-packages/nvidia/*/lib に配置し、
-          # 実行時に dlopen で読み込む。そのため、これらのディレクトリとホストのドライバを
-          # ライブラリ検索パスに追加する。
-          # WSL 2 では /usr/lib/wsl/lib に Windows 側の CUDA ドライバがある。
-          libdirs=""
-          for d in \
-            ${venv}/lib/python*/site-packages/nvidia/*/lib \
-            /usr/lib/wsl/lib \
-            ${pkgs.addDriverRunpath.driverLink}/lib; do
-            [ -d "$d" ] && libdirs="$libdirs''${libdirs:+:}$d"
-          done
-          export LD_LIBRARY_PATH="$libdirs''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-          data_home="''${XDG_DATA_HOME:-$HOME/.local/share}"
-          export RGBX_DATA_DIR="$data_home/rgbx/rgb2x"
-          ${pkgs.coreutils}/bin/mkdir -p "$RGBX_DATA_DIR"
-          exec ${venv}/bin/python ${demoSource}/gradio_demo_rgb2x.py
-        ''}";
+      apps.${system} = {
+        default = {
+          type = "app";
+          meta.description = "Launch the RGB→X Gradio demo";
+          program = "${pkgs.writeShellScript "rgbx-rgb2x" ''
+            set -eu
+            ${runtimeEnv}
+            exec ${venv}/bin/python ${demoSource}/gradio_demo_rgb2x.py
+          ''}";
+        };
+
+        batch = {
+          type = "app";
+          meta.description = "Run RGB→X over a directory of images";
+          program = "${pkgs.writeShellScript "rgbx-rgb2x-batch" ''
+            set -eu
+            ${runtimeEnv}
+            exec ${venv}/bin/python ${batchSource}/batch_rgb2x.py "$@"
+          ''}";
+        };
+      };
+
+      devShells.${system}.default = pkgs.mkShell {
+        packages = [ pkgs.just ];
       };
     };
 }
