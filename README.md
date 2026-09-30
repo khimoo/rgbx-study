@@ -12,15 +12,13 @@
 
 ## Nix のインストール
 
-NixOS-WSL を使用している場合は、初期状態で Nix がインストールされているため、次の手順へ進んでください。
-
 Ubuntu などの一般的なディストリビューションを WSL で動かしている場合は、以下の公式インストーラーを実行します。
 
 ```sh
 sh <(curl -L https://nixos.org/nix/install) --daemon
 ```
 
-インストール完了後、シェル（ターミナル）を再起動してください。`nix --version` を実行し、バージョン情報が表示されればインストールは成功です。
+インストール完了後、シェル（ターミナル）を再起動してください。`nix --version` が使えます．
 
 ## nix-command と flakes の有効化
 
@@ -30,16 +28,12 @@ sh <(curl -L https://nixos.org/nix/install) --daemon
 error: experimental Nix feature 'nix-command' is disabled; add '--extra-experimental-features nix-command' to enable it
 ```
 
+Ubuntuなどの環境ではでは、`~/.config/nix/nix.conf` に`experimental-features = nix-command flakes`を追記します（ファイルが存在しない場合は新規に作成してください）。
+
 NixOS-WSL の場合は、`/etc/nixos/configuration.nix` に以下の設定を追加し、`sudo nixos-rebuild switch` を実行して反映させます。
 
 ```nix
 nix.settings.experimental-features = [ "nix-command" "flakes" ];
-```
-
-それ以外の環境（Ubuntu など）では、`~/.config/nix/nix.conf` に以下の 1 行を記述します（ファイルが存在しない場合は新規に作成してください）。
-
-```
-experimental-features = nix-command flakes
 ```
 
 設定後、`nix eval --expr '1+1'` を実行して `2` が返ってくれば、有効化は完了です。
