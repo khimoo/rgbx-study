@@ -69,6 +69,13 @@ def main():
     parser.add_argument("--steps", type=int, default=50)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--max-side", type=int, default=1000)
+    parser.add_argument(
+        "--aov",
+        nargs="+",
+        choices=list(AOV_PROMPTS),
+        default=["albedo"],
+        help="生成する AOV。既定は albedo のみ。",
+    )
     args = parser.parse_args()
 
     images = sorted(p for p in args.input.iterdir() if p.suffix.lower() in SUFFIXES)
@@ -78,20 +85,27 @@ def main():
 
     pipe = build_pipeline()
 
+    # AOV ごとの seed のずらし幅は AOV_PROMPTS 上の位置で決める。--aov で一部だけを
+    # 指定しても、その AOV の結果が全種類を生成したときと一致する。
+    aov_offsets = {name: offset for offset, name in enumerate(AOV_PROMPTS)}
+
     for index, path in enumerate(images, 1):
-        targets = {aov: args.output / f"{path.stem}_{aov}.png" for aov in AOV_PROMPTS}
+        targets = {aov: args.output / f"{path.stem}_{aov}.png" for aov in args.aov}
         if all(target.exists() for target in targets.values()):
             print(f"[{index}/{len(images)}] skip {path.name}", flush=True)
             continue
 
         photo, old_size, new_size = fit_to_model(load_photo(path), args.max_side)
-        for offset, (aov, prompt) in enumerate(AOV_PROMPTS.items()):
+        for aov in args.aov:
             if targets[aov].exists():
                 continue
+            prompt = AOV_PROMPTS[aov]
             # デモは 1 つの generator を 5 種類で使い回すので、途中から再開すると
             # 乱数列がずれる。AOV ごとに seed をずらして作り直し、どこから再開しても
             # 同じ結果になるようにする。
-            generator = torch.Generator(device="cuda").manual_seed(args.seed + offset)
+            generator = torch.Generator(device="cuda").manual_seed(
+                args.seed + aov_offsets[aov]
+            )
             generated = pipe(
                 prompt=prompt,
                 photo=photo,

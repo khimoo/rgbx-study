@@ -158,6 +158,16 @@
             exec ${venv}/bin/python ${batchSource}/batch_rgb2x.py "$@"
           ''}";
         };
+
+        # 標準ライブラリだけで動くので venv も CUDA も要らない。
+        select = {
+          type = "app";
+          meta.description = "Link a subset of numbered images into a work directory";
+          program = "${pkgs.writeShellScript "rgbx-select" ''
+            set -eu
+            exec ${pkgs.python3}/bin/python3 ${./select_images.py} "$@"
+          ''}";
+        };
       };
 
       devShells.${system}.default = pkgs.mkShell {
