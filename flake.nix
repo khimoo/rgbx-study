@@ -109,6 +109,9 @@
       '';
     in
     {
+      # 依存の解決結果を単体で検証するための出力。
+      packages.${system}.venv = venv;
+
       apps.${system}.default = {
         type = "app";
         meta.description = "Launch the RGB→X Gradio demo";

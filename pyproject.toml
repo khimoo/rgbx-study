@@ -22,3 +22,11 @@ build-backend = "hatchling.build"
 
 [tool.uv]
 package = false
+
+# gradio 3.48.0 predates the current releases of its own transitive
+# dependencies. Resolving them freely picks starlette 1.x, whose
+# Jinja2Templates.TemplateResponse dropped the legacy (name, context)
+# signature that gradio still calls. Cut the index off just after the
+# last upstream environment.yml change (huggingface-hub 0.25.0,
+# released 2024-09-23) so the whole closure matches what upstream ran.
+exclude-newer = "2024-10-01T00:00:00Z"
